@@ -1,0 +1,37 @@
+28 Aug 2018
+
+To do:
+figure out how to create GUI in python
+open CV verses Scikit image (general & aligning images)(licencing)
+conceptually figure out how to align images within specimen
+complile annotated bibliography for reasources
+
+python GUI --------------------------
+What do I want it to look like?
+window displaying an image, press arrow button to scroll through 
+images
+
+
+29 Aug 2018
+
+Today I:
+researched and begun to implement a method for scrolling 
+through images using tkinter
+
+
+To do next:
+test with actual ABA images (hopefully its the right file type)
+refactor MainGUI code into a nice neat class
+get forward and back buttons working
+
+30 Aug 2018
+
+Today I:
+tested next image button with ABA images (didn't work)
+refactored - added change_dir()
+window open in fullscreen mode
+have buttons for previous and next image
+
+To do next:
+get ABA images to show on the screen
+make next/previous buttons to cycle through images
