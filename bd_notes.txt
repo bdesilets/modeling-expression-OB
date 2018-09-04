@@ -28,10 +28,58 @@ get forward and back buttons working
 
 Today I:
 tested next image button with ABA images (didn't work)
-refactored - added change_dir()
+refactored
 window open in fullscreen mode
 have buttons for previous and next image
+get ABA images to show on the screen (sometimes, its a work in progress)
 
 To do next:
-get ABA images to show on the screen
-make next/previous buttons to cycle through images
+FIRST get one image to show
+THEN make next/previous buttons to cycle through images
+(I was trying to do this all at once and that wasn't going well)
+
+4 Sept 2018
+
+Today I:
+For GUI:
+made methods set_img_dir, display_image 
+started on getting the next and previous buttons to work
+
+For aligning images:
+- OG images from ABA aren't the same size
+- read on image feature detection and feature discription
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_features_meaning/py_features_meaning.html#features-meaning
+-OG images from ABA are too large, get DecompressionBombWarning
+- currently trying to OG image in half (keeping th top half)
+
+Image maipulation options
+- Pillow
+- Open CV
+- Scikit Image
+- Mahotas
+- Scipy
+- PythonMagick
+- pycario
+- SimpleITK
+
+So what I need image manipulation for:
+- detect line/blob in image
+- crop image based on centering the glob
+
+
+To do:
+For GUI (switching focus now, come back to this later):
+-get next and previous buttons to work, have to stop displaying
+previous image and replace with the next images
+-also have to fix window size when click/dragging the window 
+- clean up code
+
+This week:
+switching focus to aligning images
+image libraries and image detection
+what assuptions are safe to make?
+- perfectly alligned (good enough)
+- same rotation or adjutments
+- when are we making close enough decisions
+one specimine that is perfectly lined up by hand (repeatable)
+atomatic downlaod/crop
