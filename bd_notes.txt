@@ -2,9 +2,9 @@
 
 To do:
 figure out how to create GUI in python
-open CV verses Scikit image (general & aligning images)(licencing)
+open CV verses Scikit image (general & aligning images)(licensing)
 conceptually figure out how to align images within specimen
-complile annotated bibliography for reasources
+compile annotated bibliography for resources
 
 python GUI --------------------------
 What do I want it to look like?
@@ -47,12 +47,12 @@ started on getting the next and previous buttons to work
 
 For aligning images:
 - OG images from ABA aren't the same size
-- read on image feature detection and feature discription
+- read on image feature detection and feature description
 https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_features_meaning/py_features_meaning.html#features-meaning
 -OG images from ABA are too large, get DecompressionBombWarning
-- currently trying to OG image in half (keeping th top half)
+- currently trying to OG image in half (keeping the top half)
 
-Image maipulation options
+Image manipulation options
 - Pillow
 - Open CV
 - Scikit Image
@@ -77,9 +77,1134 @@ previous image and replace with the next images
 This week:
 switching focus to aligning images
 image libraries and image detection
-what assuptions are safe to make?
-- perfectly alligned (good enough)
-- same rotation or adjutments
+what assumptions are safe to make?
+- perfectly aligned (good enough)
+- same rotation or adjustments
 - when are we making close enough decisions
-one specimine that is perfectly lined up by hand (repeatable)
-atomatic downlaod/crop
+one specimen that is perfectly lined up by hand (repeatable)
+automatic download/crop
+
+10 Sept 18
+
+Steps to crop the OG ABA image to get the OB
+1) locate head, crop all else out
+2) locate the brain, crop all else out
+3) crop the right half of the brain out
+4) locate the C or O shaped OB and crop so that the C or O is centered
+5) rotate so that the skull and OB meeting the brain are aligned
+(line of best fit)
+
+What library is best to use for this?
+I need a library that can locate a feature, crop based on the feature,
+crop based on picture, and rotate images based on features in a different image
+
+Open CV
+- cascade classifier training for training and detection
+
+11 Sept 18
+
+open cv 
+https://www.learnopencv.com/image-alignment-feature-based-using-opencv-c-python/
+
+-image alignment involves warping one (or both) images to line
+features perfectly (not what I want because images are not the same 
+and don’t want to warp them)
+
+-ORB feature detector (no license, woo) finds stable points in an
+image. Has a locater and a descriptor the same physical point in 
+two images should have the same image descriptor. can match features
+from different images, from there can calculate homograph (a matrix
+to correlate points in different images) but don’t want to warp, only 
+rotate and translate? 
+
+wait, do I want to warp? as long as it’s not forcing the two images
+to be the same, it might be good?
+
+https://www.learnopencv.com/image-alignment-ecc-in-opencv-c-python/
+
+maybe homographs aren’t what I need. according to the motion models on
+this site, I think I want translation and Euclidean
+
+look more into ECC as an image alignment method, it doesn't care about
+differences in contrast/brightness
+
+cropping is a thing that can easily be done img[y:y+h, x:x+w]
+
+To do this week:
+pseudocode go low level if you can
+look at libraries and try stuff out
+
+9 Sept 18
+
+Pseudocode for OB finding and aligning the OB
+1) Crop OG image to top half
+- get height of image
+- crop horizontally to half the height, keeping top
+
+2) Locate the brain, align the brain by a rough estimate
+- use color detection to find the yellow blob (brain)
+  (note: it would be great if could detect the O shaped 
+  OB as part of the brain, it would save problems down 
+  the road with cropping some distance from the left 
+  extreme point)
+- find center point and the left extreme of the blob
+- translate image so the center point matches
+- rotate so that the left extremes have the same y coordinate
+  (or with in a range of y coordinates?)
+
+3) Crop brain to rough estimate of OB
+- find the top extreme point and the bottom extreme point
+  of the blob
+- crop horizontally at the top extreme point
+- crop horizontally at the bottom extreme point
+- crop some distance to the left of the left extreme point
+  (because OB is there)
+- find x axis midpoint between the left extreme and the center point
+  (note: does not have to be specifically the mid point, can crop more 
+  leftward if desired)
+- crop vertically at that x axis midpoint  
+
+4) Rotate so that the skull and OB meeting the brain are aligned
+SKULL
+- use edge detection to find the location of the skull line
+- use points on skull line to find a line of best fit
+OB & BRAIN
+IF OB IS C SHAPED, AND MATCHING TO A C SHAPE OB
+- use edge detection to find curve of the OB
+- use points on that curve to find curve of best fit
+- use edge detection to find the curve of the brain
+- (repeat) use points on that curve to find curve of best fit
+- extend both curves to find intersection point
+IF OB IS C SHAPED, AND MATCHING TO A 0 SHAPE OB
+- 
+IF OB IS O SHAPED, AND MATCHING TO A C SHAPE OB
+- 
+IF OB IS O SHAPED, ABD MATCHING TO A O SHAPE OB
+- find the center of the O
+ALIGN
+- translate and rotate image to match skull line of best fit and intersection
+  point/center points as accurately as possible
+
+5) Crop so that the OB is centered
+(use locations I already know and crop some distance away from that)
+
+13 Sept 18
+
+At first glance, how do these look?
+Image manipulation options:
+
+- Pillow
+  has cut, edge finder, and transformations
+  free
+  licensed under the open source PIL Software License
+
+- Open CV
+  has wayyyyy more functionality than we could ever possibly use
+  BSD license and (free for both academic and commercial use)
+  designed for computational efficiency w/ focus on real-time application
+
+- Scikit Image
+  free
+  no restrictions, gotta cite the authors
+  already familiar with
+
+X Mahotas
+  need to cite authors
+  does not have the right functions?
+  
+X Scipy
+  free
+  open-source
+  does not do fancy image stuff?
+
+X PythonMagick (ImageMagick)
+  free software suite 
+  license is compatible with the GPL
+  can do basics, can't edge detect?
+  ellipses and Bézier curves can be added to images?
+
+X pycario
+  Python module providing bindings for the cairo graphics library
+  depends on cario >= 1.13.1
+  licensed under the LGPLv2.1 as well as the MPLv1.1
+  does not have the right functions
+
+X SimpleITK
+  open source
+  open source Apache 2.0 License
+  can transform, but no edge detection
+
+17 Sept 18
+
+-RAG doesn’t work when using a large image (memory error)
+-images aren't being read as a 2d array, which is needed for some
+methods (entropy/canny edge)
+
+18 Sept 18
+
+-figured out how to resize 3d array to 2d array, but it stretches
+the image
+-still getting memory error for images with the head of the 
+specimen
+
+crop or scale (lossy) how much are we actually losing?
+try with open cv
+
+get greyscale with a copy of colored
+
+20 Sept 2018
+
+I am getting a warning:
+deompreessioinBombWarning: Image size(144910080 pixels) exceeds
+limit of 89478485 pixels, could be decompression bom DOS attack
+
+error when trying to crop - too many indices for array
+9584 X 15120 = 144910080 pixels
+crop 5000 pixels from each side
+4584 X 10120 = 46390080
+
+When trying to view using scikit images, needed to download another thing
+so changed to matplotlib
+
+When trying to read (using io.imread) the OG ABA image, the size comes
+in as 1 and the shape is (). So that’s no good.
+
+so what is probably happening is:
+imread gives you a NumPy array which consists of two objects. The first 
+object is the image itself and the second one might be a thumbnail or something
+
+The work around of adding img_num=0 parameter to imread() didn't work
+using the matplotlib plugin as a parameter to imread() didn't work either
+downloaded open cv to try it on that, others had said it worked
+(im running into issues with this too)
+I've been spending too much time on this issue, I'm going to jump to something
+else now 
+
+so my personally cropped images isolating the brain (2, a2, b2) will display,
+but for the program I need a relatively big box for the brain because the brain
+is not in the same spot so I need room for error. When I’m trying this, the box
+is too large to display.
+
+I need to:
+1) figure out how to import OG image without having wacky shape = () and size = 1
+2) crop q box where brain is in, without displaying
+3) preform method of rotating brain
+4) crop again, hopefully can display now 
+
+wow I just realized that I don’t think I  need the whole brain in my first crop?
+So I just hard coded the crop. I input a head image, crop so that the 
+shape is (2800,3300) and the OB is in the image for my 3 test images. Now the
+problem is when I try to run the skimage.color.rgb2gray, I get a memory error
+for 2 out of the 3 tests. They are all the same size, so I’m not sure what’s
+going on.
+So I just made my own rgb to greyscale function (thanks to internet people)
+and it works fine for all three
+
+to do next:
+figure out how to roughly rotate the brain to orientate it
+(use color? blob detection or greyscale?)
+also try importing/cropping the OG image using different methods, maybe
+one method can handle it better
+
+Also consulted Steffen he suggested
+
+- Use edge detection to find outline of brain
+- make a mathematical function based on the outline (with splines and vectors)
+  as a reference, allow for variance
+- rotate matrix? around to find if reference matches
+
+or could 
+- train a tool to recognize brain, using edge detection
+
+24 Sept 2018
+
+problem: when importing full image, get decompression bom warning for image
+size. Tried to get around this by changing the max pixels allowed for PIL 
+(in Image.py). Note default scikit image uses PIL plugin for opening images, 
+can change that, but it doesn’t do anything
+
+no more warning, but it did not fix the issue of it reading as shape (), size 1
+
+Next try downloading/installing other plugins for imread and see if any of them
+work (taking a while to install)
+- tried imageio, matplotlib
+
+In the meantime:
+- I upgraded pip
+- reinstalling pillow
+- upgrading matplotlib
+- added libjpeg 
+
+no dice. okay so ignoring that, I have dimensions that should isolate the area
+around the brain (about img[700:3500,1600:4900])
+next thing to work on is get outline of brain and rotate
+
+25 Sept 2018
+
+trying to install opencv (v4), wait no (v3.4) because I that /should/ work with
+python 3
+
+refactoring find_OB.py
+
+using entropy with one channel
+find file that finds expression - density?
+I've been playing with cropping the image of half the head, but I'm thinking I 
+will run into the problem of the image of just the brain being too large to 
+display
+
+edge detection to spline?
+try reading image on open cv
+see largest crop size that will still work
+color is brain, relate it to original image pixel by pixel T/F 2d array of bits?
+go row by row, save color into set, then refer back to set
+
+1) expression
+2) separate brain/OB
+
+YES! imread() from open cv worked! 
+so most OG ABA images can be imported as RGB but one test run, it ran out
+of memory so I should read it as greyscale from start to avoid issue of running
+out of memory.
+
+TO DO NEXT:
+1) make sure isolating expression works and know how to fine tune
+2) try different methods (RAG/Entropy) using cropped images from fine_OB.py
+to try to isolate the brain
+
+27 Sept 2018
+
+To get expression: used color deconvolution method from skimage (I found this
+method last year) On first try I got a warning:
+MatplotlibDeprecationWarning: box forced
+- fixed by not forcing the image into a box, ha. I got the code from a demo so
+it was left over from that
+
+Testing color deconvolution with different sizes
+memory error when rgb image is too big, but I think I'm going to end up giving it
+smaller images anyway because I wouldn't look at the expression until I have the
+OB isolated and all lined up
+
+cleaned up code for color deconvolution
+
+started playing with entropy method
+- 2 parameters one is the image and the second is the neighborhood expressed
+as a 2D array of 1s and 0s. I'm not quite sure what this means
+- tried just putting in the red, blue and green channel into entropy
+that didn’t really show much.
+
+28 Sept 18
+
+Tried using RAG method to find OB from 
+RAG function cannot take RGB colored images the size of 50220000
+RAG function seems to be working with greyscale image though. size of 16740000
+not sure if I can get the result I want though, and the RAG function takes quite 
+a while. Just kidding, it ran out of memory but in imshow(), so maybe I'll try 
+that again and have it just save the image.
+
+Maybe try running RAG using one RGB channel instead of greyscale (memory error)
+
+RAG with one channel size = 1674000 and save image, not show -> some kind of 
+memory error
+
+next: greyscale, save image, not show
+
+While I'm waiting for RAG to run, how will I set this up?
+- find_OB.py
+    crop OG image (DONE)
+    find brain (IN PROGRESS)
+    Rotate brain
+    find OB
+    crop around OB
+- get_expression_map.py
+    get expression data (DONE)
+    clump expression locations based on density
+-Main_GUI.py
+    overlays cropped image from find_OB.py and the clumped expression locations
+        from get_expression_map.py
+    has the actual window, able to scroll through images
+
+Now this outline is only taking into account one images, so what If I have a
+series of images being fed into find_OB.py? do I encapsulate them in an object?
+maybe have a dictionary containing (image,expression_map) pairs? This would keep
+the image matched with its expression?
+
+So what about integrating many sets together? Once I figure out the location of
+where to add the image I can just add to the dictionary. Dictionaries
+aren't ordered though. BUT I found a sorted dict library that could work?
+Waiiit. I would have to add multiple expression maps to one image, so a dictionary
+wouldn't work, unless I keep appending to the expression map, not just adding a new
+one
+
+Now how would I figure out how to sort the images?
+After cropping & rotating to find the OB it would have to be aware of the shapes
+(mathematical functions of the curve?) already in the template and be aware of 
+the approximate location/shape of the previous image (use stack?) because the
+shape is a sphere so the shape will be O then C then O again
+so if you don’t keep a pointer that knows where you are in the OB, then when you 
+grab a O shaped OB, you don’t know which end of the OB to put it in.
+
+This will definitely need to be thought about more, but its also a problem for 
+later
+
+1 Oct 18
+
+okay so it looks like the image of the brain is too large in both RGB, greyscale
+and one RGB channel. 
+maybe try increasing the parameter compactness to help the memory error
+
+now I'll look at scikit image's canny edge detector in hopes of outlining the brain
+It seems promising, there are two parameters to play with, the sigma number of 
+feature.canny and ndi.gaussian_filter interger. I tried it with the  grayscale
+cropped image of the brain and it(feature.canny) gave a memory error. this method
+might be good when zoomed closer to the OB though.
+
+Roberts edge detection and sobel edge detection can take the cropped image
+containing the brain, but it doesn’t do what I want and I don’t know of any
+parameters to play with it. They only have mask parameters.same with scharr and
+perwitt edge detection methods.
+
+There is an example where they take the difference between scharr/prewitt and 
+scharr/sobel?
+
+2 Oct 18
+
+Okay so far
+- color deconvolution works well to get expression, but there is no way to
+  fine tune/adjust. I want to find and look at skimage.color.rgb2hed function
+  and matplotlib.colors.LinearSegmentedColormap
+In terms of finding the brain:
+- entropy might be of use? if we can get at the yellow outline? (takes a few mins)
+- RAG runs out of memory and takes a long time
+- Canny edge detection
+
+to get expression density
+for each pixel:
+	calculate distance from threshold (using the formula)
+	look at kxk space (neighborhood)
+
+get to the point of displaying expression vs not
+
+when storing expression, store as bit matrix
+
+eyedropper tool to find color (sample)
+define showing expression 
+compare pixle rgb to threshold rgb
+dist<threshold
+dist=sqrt (chang r)^2+(chang g)^2+(chang b)^2
+
+
+to go pixel by pixel (might have to flip length and width, be consistent)
+for i in range (length)
+	for j in range (width)
+		deltaR=img[i][j][0]-ideal red
+
+use nd arry for neighborhood
+
+change r is the actual pixel value of red - what the idea red component should be
+
+figure out what reasonable threshold value is, relatively small number 30's ish
+
+could weight the change in formula, and play with weights of R G B (weighted average)
+
+so after talking with O'Neill color deconvolution is not the best method.
+mostly because we can't interpret the intensity of the color (says an online
+source). Instead we will be gathering data from the og image
+
+SO to find the threshold R,G,B values, I am going to take samples from OG images
+I can use ImageJ to highlight areas where I see expression, get a histogram that
+gives me the number of sample pixels, the average and min/max RGB values perfect!
+from this data I can get a threshold number/range (probably the min/max)
+
+open image in imageJ
+Image -> Adjust -> Color Threshold
+
+thresholding method -> default
+threshold color white
+color space RGB
+
+red 180 - 255
+green 150 - 255
+blue 0 - 255
+(these are the values that RGB is okay to be in and be considered expression)
+
+select
+analyze -> histogram to get pixel count, average, mins/maxes
+
+4 Oct 18
+
+Okay so I found the threshold R G B. i need to run through each pixel
+and calculate how far away from threshold it is. then decide if that
+distance in close enough to be considered expression.
+
+So I did it, but its showing wayyy too much expression. So I'm adjusting
+threshold to try to fix that? I can also adjust the weights for R,G,B
+
+So I'm struggling, how do I decide where the threshold should be? 
+I can eyeball it, but that's not good.
+I looked through imageJ and found the min RGB values based on where I see expression
+which is a better method. okay so stick to that method and figure out how to get
+the code to reflect that. then look at neighbors. also have to figure out what
+is a significant density of expression.
+ha, wow I was having trouble cause the distance formula is not what I need at this
+moment (maybe need to get neighborhood?) and because I forgot opencv reads color 
+images as BGR not RGB.
+
+9 Oct 18
+
+compared time for the two for loops vs np.ndenumerate they ere about the same. 
+the two for loops was a few seconds shorter.
+
+Do I need to look at every pixel’s neighbor? No, I think I only have to look at blocks
+of the image at one time.
+ix_(rows, columns) is an advanced way of selecting multiple values in the ndarry
+
+10 October 18
+
+added functionality of a list that contains the upper right coordinate of each block 
+(for checking density). Then we will loop through the list and look at each pixel
+within the block. if the pixel is expression, increment expression counter. Once 
+you go through the whole block, compare the expression counter with the min_expression
+density (arbitrarily set at the moment). If the counter is greater than or = the min, 
+all pixels in that area are color white (they have expression). If the co8unter is 
+less than the min expression density, then all pixles in that area are colored black
+(the do not have expression).
+
+does python have a built in function for majority vote?
+
+iter tools library it is the product
+for x,y in product range (window)
+
+r = neighborhood radius 
+expression map is binary
+neighborhood map is empty binary (same dimensions as expression)
+
+for x,y in product (range(exmap width), range(exmap height))
+	neighborhood = product(range (x-r, x+r+1), range(y-r,y+r+1))
+	neighborhood values=[xmap[u][v] for u,v in neighborhood]
+	if neighborhood values.count(255)>=mindensity
+		neighmap[y][x]=255
+	else
+		neighborhood map[y][x]=0
+	
+
+time it for one image and specimen set
+After this:
+after this, go back to GUI and flip to images and highlight expression map over
+image, add two expression maps
+
+11 Oct 18
+
+so actually, I do want to look at each pixel and its neighbors (hence the pseudocode
+above)
+I cleaned up the code for filter_expression.py
+I turned the pseudocode above into actual code and added code to deal with cases
+the edge cases of the neighborhood being off the image (and thus wrapping around)
+
+So I think this will work, but the problem is that the code is taking FOREVER 
+to run. and I didn’t do the timeit thing because its just a test run to see if it 
+works like I want it to. So I will let this one run and hopefully finish at some
+point.
+
+12 Oct 18
+
+Okay so creating neighborhood map is still running so I'm going to work on the GUI
+until it finishes. Maybe after it finishes I can try to find a more efficient solution
+I edited button color/font/size to be more appealing
+
+15 Oct 18
+(my computer restarted so I did not get to see the result of the neighborhood map)
+I started to run it again and it prints the progress after every 1000 loops, so that
+is running now.
+Today I:
+- fixed the issue of clearing and replacing the image
+- fixed the previous and next buttons
+- looped the pointer so that when you reach the last image in the set, you go back to 
+  the beginning
+- added a text label for showing you what image you are on in the set
+
+
+Next:
+- fix issue of text label disappearing
+- fix issue of images being displayed zoomed in 
+end of the set, you go back to the beginning. 
+
+16 Oct 18
+
+Ideas to make neighborhood map creation faster:
+- small neighborhoods
+- covert array to hash map? - nope
+- make images smaller
+I'm trying to figure out why the textbox won't show up over the cycled through image
+I tried adding a scroll bar but the image is in a label, not a canvas so that didn't 
+work
+I also tried setting the image to the top and the box to the bottom, but that also 
+didn't work
+
+problem with duplicating work in  neighborhood map – don’t have to keep remaking the 
+neighborhood every time
+try:
+- debug on smaller image 
+- keep part of the neighborhood between coordinates (restart at the beginning of each 
+row until can figure out lawnmower pattern)
+- check for count of 255 as you look through the neighborhood 
+neighborhood map[x][y]=255 if len([1 for u,v in neighborhood if expression map[u][v]==255]) 
+???
+try sum instead of len, inner part might not be correct
+- get the zoom to work on the GUI
+- get expression map/neighborhood map to be shown on top of the original image 
+(turn one color into transparent?)
+- if finish that, go back to aligning 
+
+So for cropping the test images I have to get to a smaller image, I can get the OB
+to fill a (1000,1000) space 
+I had to do some funky stuff to get the matplotlib plot to save without whitespace
+
+from matplotlib import pyplot as plt
+from matplotlib.pyplot import gca
+import matplotlib.ticker as tick
+	
+	plt.imshow(img)
+	gca().set_axis_off()
+	gca().xaxis.set_major_locator(tick.NullLocator())
+	gca().yaxis.set_major_locator(tick.NullLocator())
+	plt.savefig("cropped.jpg", bbox_inches='tight', pad_inches=0)
+	plt.show() 
+
+18 Oct 18
+
+Debugging with a smaller image:
+- I had x,y in the thing when assigning the neighborhood_coord variable instead of y,x
+- 50 is wayyyyy too large of a radius, so is 20. 10 and 5 have been good for radius 
+- had an indexing error when looking though the neighborhood values, if subtracted 1 from 
+  the ymax_window, it didn't give me an error anymore?
+- neighborhood was a total of 110, when it should be 100, the error was happening 
+  in the x window for the max x value. fixed that
+
+- now there is an issue with min density. When I change the min density to a low
+  number, there SHOULD be more expression then when the min density is higher. When
+  the min density is high, there should be a higher threshold each neighborhood to meet
+  and therefore there should be less expression. This is not the case at the moment
+  So I'm not really sure what is going on here, I printed some stuff out and the logic
+  seems fine, the count of the neighborhood 255 value is greater or = to the min 
+  density the pixel is colored 255. (visa versa) but the end result is more full of 
+  expression. I think I might have to bring this up to O'Neill?
+- with radius of 5, still get specs of white, we want globs
+- timing wise, radius of 5 takes about 35 seconds, while radius of 10 takes about 120
+  but I'm going to look into making that more efficient anyway
+
+Getting expression to overlay background image
+- I think I can use the paste function with background_img.paste(foreground, (coords), foreground)
+
+22 Oct 18
+
+okay so what am I doing? I can work on
+- keeping part of the neighborhood as I go through
+- get map to overlay on GUI
+
+Pseudocode for keeping part of the neighborhood
+
+
+neighborhood_coord = product(range(ymin_window,ymax_window), range(xmin_window,xmax_window))
+	neighborhood_values=[]
+	for u,v in neighborhood_coord:
+		expression_map[u][v]= u,v
+
+		if u,v isnt in neighborhood_values:
+			neighborhood_values.append((u,v))
+		for value in neighborhood values:
+			if value[1]< xmin_window or value[1]>xmaxwindow or value[0]<yminwindow or value[0]>y minwindow:
+				neighborhood_values.remove(value)
+
+		if neighborhood_values.count(255)>= min_expression_density:
+			neighborhood_map[y][x]=255
+		else:
+			neighborhood_map[y][x]=0
+	return neighborhood_map
+
+23 Oct 18
+(I’m also still editing the pseudocode above to make it actual code)
+so what I'm trying to do is:
+
+for the first coordinate, get the neighborhood
+if the neighborhood count >= min expression density, color pixel white, if not, color it black
+loop though every coordinate
+	add to the neighborhood
+	remove from the neighborhood
+	if the neighborhood count >= min expression density, color pixel white, if not, color it black
+
+TO DO:
+figure out if y,x or y,x
+
+make super tiny image by hand
+take spray-paint tool (or whatever), paint some of image target color
+run program with different radius/density
+
+if still stuck
+walk through on paper
+
+look at alpha component
+is a 1x1 square 0 or 1
+
+figure out nicer way to do edge cases
+
+okay so np.zeroes([5,5]) creates an array (5 by 5 so if you were to do indexing 
+it would be 0 by 4)
+changing the map at [1,0] to be 1 shows that np arrays are mapped as (y,x)
+and use 0 indexing
+if you call map.shape, it gives you the shape in (y,x), with indexing at 1, NOT 0
+therefore for a map shaped (4,5), for y in range(map.shape[0]):, y prints out to be 0,1,2,3
+okay, so if you have
+for y in range(map.shape[0]):
+	for x in range (map.shape[1]):
+		print(y,x, "value: ", map[y,x])
+it comes out correctly where y stays 0 and it loops through all possible xs
+then y goes to 1 and is paired for all possible xs. and the value of the map at
+map[y,x] gives the correct coordinate. It won’t yell at you if the image is a square
+and you do map[x,y], however, it will do screwy things!
+the statement
+for x,y in product(range(map_width), range(map_height)):
+so if you want this to be in y,x format, you have to make sure to change it so that
+it is product(range(y),range(x))
+for the pixel (0,0), doing x-radius and x+radius yields a x window of -2 to 2
+for pixel (1,3), doing the same thing yields a x window of 1 to 5
+
+okay, so knowing this, I'm going to edit, and I think I got it.
+everything is in y,x so there is nooo confusion
+
+I made the edge cases check look a bit nicer
+so now I'm going to work on getting the more efficient neighborhood to work then
+I'll work on the density issue
+
+25 Oct 18
+
+I have an issue with building the neighborhood. something is a tad off. I need to
+append one more thing to the neighborhood coordinate list. ha, my if block wasn't 
+in the right loop.
+So with a radius of 1 it makes a box of 3x3 and all the edge cases work so woo!
+
+so filtering expression using the old method and the large 400x400 (ish) image
+takes about 70 secs
+
+26 Oct 18
+What so right now, with keeping most of the neighborhood just appending and removing
+filter_expression.py takes 188 seconds. I think its eating a lot of time during the
+removing elements from the list. so I combined neighbhorhood_coord and neighborhood
+values into a dict with the coord as keys and the 0 or 255 aspect as its value
+now I'm down to 30/35 seconds :) and it looks cleaner
+
+So now I need to fix the min density expression. right now the final image is just 
+all white so there is something going on here. ha, it was because I was counting
+the keys of the dict, not the values. so it should be good now. it took 160 seconds
+and I think I can get that down if I have a running count of expression within the
+neighborhood then I can check it against the min density instead of having to count
+all the keys every time. so I did that, but the neighborhood isn’t working correctly
+Its getting too large the radius is 5 and the largest the dict should be is 121, but 
+its getting well over that
+
+27 Oct 18
+
+so what I needed to to was clear the dictionary and reset the counter after 
+whenever it started a new row. so yay! now its at 11 seconds for a 400x400 image
+which is much better than 70 secs (before I did the moving window)
+
+so I still have the weird issue of when I decrease the threshold density, 
+it should increase the expression, but it does the opposite
+
+29 Oct 19
+
+So I think I have this all backwards, it might be the way that matplotlib codes/
+shows colors. white is 0 and black is 255! so now I'm going to go through the code
+to make black be expression and white be not expression (because I have been using
+np.zeros to make the map, I want to start with no expression then add it)
+okay so what I had to change to fix this:
+in create_binary_map function, I had my > and < signs switched when checking
+against the thresholds. I need both of them to be <
+Also, because I am changing this, it turns out that .3 (30%) is a good 
+density for min expression.
+now that its all said and done, it takes 10 seconds for a 400x400 img and
+black is expression, white is no expression
+
+to fix some potentially unclear wording/names I changed expression_map to 
+binary_expression_map and neighborhood_map to expression_map
+
+This week I:
+fixed bugs on y,x
+fixed min density dilemma
+made creating neighborhood faster by keeping most of it as x changes
+made checking neighborhood density faster by using a counter while creating neighborhood
+
+Next:
+go back to MainGUI and figure out how to do the paste function correctly
+(or find a different function that does what I want)
+
+30 Oct 18
+TO DO
+So how do I get the alpha channel to happen, efficiently?
+how to interpret expression in brain atlas (radius and density)
+one specimen throughout the OB
+if have time, do color thing for expression 1, expression 2 and overlap
+PAPER / PRESENTATION
+for paper:
+understand code thoroughly (no walk through line by line) and understand choices made
+neurobackgorund. what tasks solve what problem, pseudocode figures of neighborhood map
+
+libraries, tools, choices made, trade offs
+paper has more of the process
+
+presentation - mostly about tool, how it works, less on decisions
+- no code in front so walk though algorithm (neighbored problem)
+
+consequences of changing parameters in paper would be a few sentences, would go into more 
+detail
+
+final paper audience is O'Neill and CS people
+Presentation is for students
+
+DOCUMENTATION
+- separate doc  developer- briefly explain functions do and why, imagine you 
+this project down for year and then tried to pick it up, tutorial for someone trying
+to expand code
+- annotate code
+-user doc - how run, what it does
+
+I got the expression map to have a alpha/clear background, I need to figure out
+how to store this data, like do I save the files? or keep them in a database of 
+sorts? But that's not the issue I'm working on now. Now I need to get the background
+image to show with the expression map on top.
+
+30 Oct 18
+
+okay So there is a lot I need to handle in MainGUI.py
+First, I want to get rid of the whole ask user what directory they want to point to.
+That function basically, asks the user for a directory, gets all the names of files
+in that directory and puts them into a list
+So part of my issue it that I have to change the working directory every time I open 
+an image, so I did that. I also made variables to distinguish the list of filenames
+of the maps/ template and the directory that those files are in.
+now what is happening is all of the images shown are just all black. That will be
+a problem for tomorrow.
+
+1 Nov 18
+
+okay so the black box issue. If I remove the paste function, the background image 
+shows just fine and if I remove the past image, and just show the expression map,
+the map shows up good as well. So it is the damn paste function that has the issue
+So there are a few functions I'm looking at to paste the images together
+image.paste, image.blend, image.composite and image.alpha composite.
+I started with alpha_composite and all I needed to do was convert the background image
+to  RGBA so sweet! it looks great now!
+
+Next issue:
+
+I'm gonna go a bit bigger picture now. I want to give a new set of cropped (for now)
+images and I want it to go through, make all the maps, then display it in the GUI.
+For now, I'll just save/read files. Later I might want to store the data differently
+
+I'm going to put this functionality in filter_expression.py because when a new set of
+of images come in, I need to make and save their maps. once their mas are saved, I wont
+need to run filter expression.py for that set again (unless user wants to change
+density or radius). 
+now I have it so that filter_expression grabs all the files in a folder (rn
+its the template folder but I suspect that it will be an protein-specific folder
+later) I read it, change to RGB then make the binary and neighborhood expression 
+maps then save the expression map in a different folder. Part of what gave me trouble
+here is changing the working directory so that I can save/read from the right places
+
+As of right now, for 10 images, this process takes about 130 seconds (2 min 10 sec)
+which is not terrible considering the user will only have to go through this 
+process when downloading a new data set of expression.
+This is awesome! Its finally coming together :)
+
+Next issue:
+Integrating multiple expression maps. (for now I'll do 2 maps, then expand to 
+n number of maps)
+to do this I need to 
+1) be able to paste 2 maps images together (I’m using alpha_composite rn)
+2) color each expression map a different color
+3) color the overlap of expression map a different color
+
+So I think I'm going to want to store all of the expression maps and their cropped
+images as files because I think it is important that scientists be able to get at 
+those raw data images and maps if they want to. This will inform how I decide to 
+do this
+
+I could start with one expression map, then merge it with another (doing all the
+color things) and keep doing that (for n maps) then paste it on the background.
+This would involve saving an image for each combination of maps
+but the alternative would be to color them on the fly which, would not be 
+efficient either?
+
+2 Nov 18
+
+So what I’m thinking is that I could have a recursive function for checking and
+finding overlap for each map against one another
+
+or I could do a mathy thing where I find the parameter of the expression and compare
+maps by doing math. eventually I would get lists of coords that would be different
+combinations of overlap to be colored a certain way
+
+or I could try to find a Scikit image/opencv way of solving this problem (I'll 
+look for this first)
+
+I might want to use a color_mask with scikit image? Once I know what pixels need to 
+be colored, I could use masking to color them 
+(example here: https://stackoverflow.com/questions/9193603/applying-a-coloured-overlay-to-an-image-in-either-pil-or-imagemagik )
+over the template image this will prob be faster than merging images
+
+maybe I can try to find a function for finding differences/similarities within images
+From there I could take those coords and add an overlay on the template.
+(look at https://www.pyimagesearch.com/2017/06/19/image-difference-with-opencv-and-python/)
+
+5 Nov 2018
+
+I’m going through the tutorial/example of the last link I posted
+
+6 Nov 18
+Right, so the problem I'm trying to solve is to efficiently show multiple 
+expression maps.
+Looking in Scikit images module measure
+Methods of interest:
+- find_contours
+If I use find_contours for each expression map, it would return a list of ndarrays that
+are the shape of the contour. then I could compare coordinate for the shapes and color
+accordingly?
+- Regionprops could be of use
+you can get the number of pixels in the region, 
+
+TO DO
+GUI for user to say I want this expression map, if its not there have way to get it
+do on the fly- give option for user to save
+go through each pixel in the first map
+	look at that pixel in each corresponding specimen
+
+how should I save map images? 
+write map files as text, or use pixel (binary file) would be smaller files
+(for binary pickle module dump() load())
+
+the first map of each set of expression maps is either 0 or 255.
+you have k sets of expression maps
+2^(k-1)(one expression map/ 255) which = either 0 or 2^(k-1)
+after summation, it should add to a number 2^k -1 which can be mapped to colors
+1) do math
+2) do GUI for math
+option: look into python function map, returns map object which will be filled with numbers 0 
+through (15) 2^k -1, can turn it back into nd.arry
+
+8 Nov 18
+okay so I made a mini version to debug on with 3 maps of 4x5 and its working, partially
+there is definitely something weird happening with the math. the numbers don’t add up
+right so I'm gonna go through and see what its doing
+
+12 Nov 18
+I have my mini version working with 3 maps. Now I need to add the portion of
+assigning discrete colors to each combination of overlap. So I'm going to try
+to create a custom colormap with discrete colors. thanks to this page:
+https://gist.github.com/jakevdp/91077b0cae40f8f8244a
+The method for creating a cmap with discrete intervals (discrete_cmap())
+Now, I'm not sure when this will break. haha How many maps can I add until it 
+runs out of colors? I think it depends on the color_list from matplotlib. Actually,
+the color_list is an ndarray that has numbers between 0 and 1 so that works :)
+
+13 Nov 18
+Now that I have overlaying multiple images working, I need to integrate it into my GUI
+
+TO DO:
+Make combination map show up on GUI
+look at different ways to do the GUI thing (select different expressions)
+look at different colormaps that may be easier to read?
+make code look clean!
+store maps in binary? (pickle)
+
+Presentation Date: DEC 6 common hourish 12:30 - 2
+(look at rubric sent, ignore second page of it)
+
+On Dec 12 (hopefully before, bring in draft)
+- (zip)
+- User Guides
+_ Paper - tie back to goals paper
+- link to github
+
+On radar:
+Abstract
+
+meet next week! before thanksgiving break!
+
+So for the moment, I am going to use a multi select listbox for the user to decide
+which sets of expression maps they want. I have it going along the bottom of the GUI 
+and I want it to be in many columns eventually. I think now it is in one column.
+
+In my init, I have the dir of the template folder and the map folder.
+I have a list of ALL the names of maps available to the user
+I am going to need some type of way to store (dict?) each expression protein with
+its corresponding set of section maps throughout the OB. I should probably have only
+the selected expression_proteins in the dictionary, then when the user selects or deselects
+It can be added or removed. That way later when I am trying to compare the maps
+I have to say is from this key, get the [pointer] item from the value (value will be a list
+containing the specific maps 1-10)
+
+19 Nov 18
+
+well, I made my abstract and it was thoroughly edited according to Jake's comments
+now, lets get back into coding
+so to get the selected items, I think it would be
+mylistbox.get(mylistbox.curselection())
+or probably something like this (because of multiple selections):
+values = [mylistbox.get(idx) for idx in mylistbox.curselection()]
+
+so now to put the selections as the keys in the dictionary with the directory to
+it in as the value? or should the value be the list of 10ish sections? I'm thinking it
+needs to be the directory because I will need to change directories every time I look
+at a different gene. I can easily get the list from the directory too.
+
+So now, do I wipe the dictionary every time the user selects something different?
+I shouldn't need to. but, I do want to get this to a working state. so I'll wipe the
+dictionary every time now, then later edit it to be more efficient.
+
+or, does current maps need to be a dict? could it efficiently be a list? yes, I think
+it would be good as a list. the dir can be derived from the map dir and the name of the
+map
+
+20 Nov 18
+next Tuesday bring outline for paper
+I need to outline what is happening with the expression images
+so rn I have a variable for the current maps selected
+and I need to go through each of those and load in the image that corresponds with
+the pointer for each image.
+
+so I need a function that loops through the current maps and grabs the file at pointer
+and put those in a list to be passed to compare_maps
+
+I went through, and cleaned up some of the MainGUI code and fixed some data type errors
+now the only thing (I hope the only haha) I need to fix before I get to a good working
+state is converting an matplotlib image to a PIL image. (hopefully without saving the file)
+
+23 Nov 18
+
+I made an outline for my final paper, woo
+
+24 Nov 18
+
+I'm working on that matplotlib to PIL conversion.
+right now, at the end of compare_maps() I have a matplotlib.image.AxisImage
+which is an ndarray and a cmap
+
+while I’ve been looking around online for this, I came across I thing that 
+might be useful later. (for making a key for colors) plt.colorbar() might be 
+a useful thing? 
+Here is the link to the example: https://kite.com/python/docs/matplotlib.image.AxesImage
+
+Anyway, there are a couple of approaches I could try
+- put the data into matplotlib figure, then convert that to PIL (I have example for figure->PIL)
+but I can't figure out how to apply the custom colormap to the figure?
+I also tried to use get_array() but that retuned an array of 0's so its not keeping all the beautiful
+pixel values I just made with compare_maps(). 
+I've spent a while researching this and trying different methods, and I want to get this done
+and in a working state. I'll just save the image and load it in PIL for now. working version is better
+than not working.
+
+26 Nov 18
+
+So I'm doing it the cheap way now, with just saving and loading it again
+now, the cmap I'm making is assigning black to the background, and I want white to be the
+background so that I can convert white to the alpha channel. I also want to super make
+sure that a map with all zeroes will always be white.
+
+I can do this by saying:
+cmaplist = [cmap(i) for i in range(cmap.N)]
+	cmaplist[0] = (255,255,255,1) # the 1 is for RGBA style (A is a number between 0 and 1 for opacity)
+So I think I can do this outside of the creation of the cmap? or can I do this within the method for making
+the cmap? I think I need to go though and re understand that method
+
+I looked over the method and I think I just need to edit my color_list variable
+so that only the absence of expression will be white and only all the overlap will be black
+I think I can do this by using N?
+
+ahha! yes, so When making the cmap, I specifically set black to be all and white to be none,
+then later I convert all white to transparent. I do this later because I tried to make it transparent in the cmap
+but it didnt work. I think it has to do with how I read in and out the files, but I don’t care to fix that at the 
+moment, I'll get it when I work on efficiency stuff.
+
+So I'm basically going to stop coding now to work on paper and presentation, 
+but I should make a to do list just for reference
+
+TO DO:
+Easy:
+Make key for colors
+Find template images with no expression
+Change GUI from pack format to grid format
+put in scalebar
+clean/comment code (kinda includes some of the efficiency list)
+make preprocessing easier (program detects new folder and will run to filter expression)
+
+Efficiency:
+Figure out matplotlib AxesImage -> PIL image
+Make sure colormap/add alpha channel is efficient
+Map out image conversions to look for redundant code
+(don't need cv2.imread?, convert to alpha occurs twice)
+
+Add Features:
+Cropping/aligning images
+Appling different lengths of genes to template
+- make inferences for genes with less images
+- combine for more genes
+Automatic downloading
+Add sliders for density/radius
+
+27 Nov 18
+
+I added some features I have listed above to my outline (I had forgotten about
+matching genes to the template) and I looked through the criteria for NSCI thesis
+defense/proposals. This includes:
+
+GRADING
+Abstract, Introduction, Discussion
+- explain your work in relation to bigger picture
+- clear hypothesis, prediction, outcome, interpretation
+- feasibility/novelty of work (I added in this, its highlighted in the presentation section)
+
+Main Chapters
+-how hypothesis is being tested, appropriate figures
+- clear/appropriate methodology
+- significance of work
+
+The paper I have to write for O'Neill is not scarily an introduction or thesis paper,
+but I do have to write an introduction for Jake, so I'll look through the specific guidelines
+for the thesis and see if any of that should be added to my paper for O'Neill
+
+DETAILS FOR WRITING
+Introduction
+- provide enough background so that the reader can understand your project
+- explain purpose of research
+- cites first discoveries/later work papers
+- subject headings are used
+- define the question your research will answer
+
+Methods (past tense, italicize scientific names)
+- repeat experiments (understand methods in my case?)
+
+Results (past tense)
+- use figure/tables to support arguments
+
+Discussion (no new data/observations/figures, active voice is better than passive - "Fig 1 shows" better than "is shown by Fig 1")
+- compare your results with published studies 
+- consider results with respect to methods
+- draw conclusions that can make based on study and explain significance
+- show that work addresses questions/prepositions from introduction
+
+Format for tables/figures
+FIGURE - title below
+TABLE - title on top
+need legend - species name, time, what was done 
+
+By the looks of it, I'm thinking my paper to O'Neill will be the Introduction and 
+Methods sections. Maybe Just the methods section. I'll see what his criteria are when we meet.
+
+Now I'm working on cleaning up my code for MainGUI.py 
+I went through the import statements and specified where I could.
+I can try to get rid of the use of cv2, it involves conversion between image types 
+so I'm not going to do that right now, I'll add it to my list above
+Now I'll look through filter_expression.py
+I fixed all the imports, later when I look through image types, in filter_expression,
+i might not need to convert the white to alpha. I end up doing that later anyway.
+
+This coming week I will be working on my presentation because I'll be presenting next week
