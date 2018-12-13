@@ -1,4 +1,180 @@
-Purpose
-Features
-Specifications/Dependicies
-Refrence Papers
+Outline
+
+I)   Outside software requirements
+II)  Link to github
+III) Module: filter_expression.py
+	A) Key functions
+	B) Known bugs
+IV)  Module: MainGUI.py
+	A) Key functions
+	B) Known bugs
+------------------------------------------
+I)   Outside software requirements
+
+Python 3.6.5
+Libraries:
+- numpy 	1.14.2
+- PIL/Pillow 	1.1.7
+- matplotlib 	3.0.0
+- cv2 		3.4.3
+
+II)  Link to github
+
+	https://github.com/bdesilets/modeling-expression-OB
+
+III) Module: filter_expression.py
+
+	The ABA images directory holds multiple folders of ISH image 
+sets from the Allen Brain Atlas (ABA). Each subfolder is labeled the 
+gene name and contains a set of cropped RGB ISH images.
+	Similarly, the expression maps directory holds multiple folders
+of expression map sets. Each subfolder is labeled the gene name and 
+contains a set of black and white images that are the result of running
+the filter_expression module. The images in these subfolders are the 
+the extracted and filtered expression data of the corresponding ISH 
+image in the ABA image directory.
+	This module looks through the expression maps folder and the 
+ABA images folder. It makes a list of the gene(s) in the ABA images 
+folder that are not in the expression maps folder. In other words, it 
+looks for the gene subfolders where expression data has not been 
+detected and filtered from the ISH image.
+	In each new set of ISH images, it loops through all images in
+the gene set and 1) detects the gene expression 2) filters the
+extracted expression.
+	
+	A) Key functions
+
+	1) detect_expression
+		Takes one 3-dimensional numpy.ndarray as a parameter
+		Returns one 2-dimensional numpy.ndarray
+
+	   Detects which pixels from the original ISH image shows gene
+	   expression. This is done by looping through each pixel and 
+	   deciding if the pixel’s red green blue values are within the
+	   set RGB threshold range (global variable).
+
+	2) filter_expression
+		Takes the result of detect_expression 
+		(one 2D numpy.ndarray)
+		Returns one 2-dimensional numpy.ndarray
+
+	   The expression data from detect_expression needs to be 
+	   filtered to decrease the signal to noise ratio. This is 
+	   accomplished using a minimum density threshold inside a 
+	   sliding window algorithm. The count of the number of pixels 
+	   in the window that have expression is compared to the 
+	   minimum threshold. If the count is greater than the 
+	   threshold, than the center/current pixel is colored back for
+	   expression. If not, then the center pixel is colored white 
+	   for no expression. The minimum density and the window size 
+	   (radius) are mutable global variables.
+	
+	   For efficiency, we do not create a new window for each pixel.
+	   Instead, we keep most of the window as we loop through each 
+	   pixel in the row. This way, we only need to add and remove a
+	   column of pixels in the window for each new pixel that does 
+	   not begin a new row. When the center pixel is the beginning 
+	   of a new row, the window must be made from scratch. 
+
+	B) Known bugs
+	
+	1) Currently, we must assume that all ISH images show gene 
+	expression with the same RGB threshold values. Finding a better
+	way to figure out possible RGB ranges would be useful.
+	
+	2) We can make filter_expression more efficient by using a 
+	“lawn mower” pattern when looping though all the pixels. This 
+	way the window must only be created from scratch for the very 
+	first pixel. When a new row is reached, the window must only be 
+	altered by deleting and adding a row of pixels.
+
+	3) Ideally, the filtered expression map images should be stored
+	in binary (pickle?) to save on space. The ISH images in the ABA
+	images folder should not be stored in binary. I think it is
+	important that investigators using the program can refer to the
+	original image.
+
+IV)  Module: MainGUI.py
+
+	This module contains the GUI. The current main features of the
+GUI are the image viewer, the next button, the previous button, the 
+current image number tracker, the listbox, and the okay button. The
+listbox contains a list of gene names in the expression maps folder.
+Users can select any combination (or none) of the genes in the listbox
+then click the okay/"go" button. Once the "go" button is pressed, the
+image viewer will be updated with the combined gene expression maps.
+This module also contains the function for joining the expression map 
+image with the template image.
+	Aside from the GUI, a key function of this module is to compare
+the expression maps of all the genes selected in the listbox at the
+current image in the sequence (ex. image #4 out of 10). This comparison
+is done on-the-fly as the user selects which combinations of gene
+expression they want to see.
+
+	A) Key functions
+
+	1) compare_maps
+		A list of numpy.ndarrays
+		Returns one 3-dimensional RGB PIL.Image
+	   
+	   For clarification, this function takes a list of expression
+	   maps at the current image number for the currently selected
+	   genes. It returns a PIL.Image of all the selected, current 
+	   maps superimposed and colored based on the different 
+	   possible combinations of unique expression.
+	
+	   Each pixel in each expression map is compared using a 
+	   summation equation. The number of terms used in the 
+	   summation is equivalent to k, the number of expression maps
+	   that are being compared. The result of the summation is a 
+	   unique number that corresponds to the combination of 
+	   expression verses no expression for a set of expression maps.
+	   In other words, each of the possible combinations of pixel 
+	   values when comparing each expression map correlates to a 
+	   result to the summation equation. The pixels in the
+	   summation_expression_map contain one of the possible outcomes
+	   of the equation.
+
+	2) discrete_cmap
+		Takes N, the number of possible combinations of 
+		expression
+		Returns a custom discrete cmap 
+		(colormap from matplotlib)
+
+	   Each of the numbers in summation_expression_map are assigned
+	   a color based on a based on a pre-made color map from 
+	   matplotlib (nipy_spectral). A list of evenly spaced numbers 
+	   in the range of [0,1] is made. The length of the list is 
+	   based on the number of possible combinations of expression,
+	   or the number of different outcomes from the summation 
+	   equation. Using the nipy_spectral colormap ensures that the 
+	   highest summation result possible is always correlated with
+	   the color black. We force and the lowest summation result 
+	   possible, 0, to always be correlated with the color white.
+	
+	B) Known bugs
+
+	1) For the GUI, we need to add key to show which colors 
+	correlate to which genes, a scale bar for images, and 
+	directions for selecting genes to visualize. 
+
+	2) Also for the GUI, we need to add a way to change the minimum
+	density threshold and window size during the process of 
+	filtering expression.
+
+	3) Find template images that show no expression so that the
+	colors from the expression map(s) do not become hard to see.
+	
+	4) Figure out an efficient way to convert a matplotlib 
+	AxesImage (or an matplotlib image with cmap applied) to a PIL
+	Image. Currently, we save it to a temporary file then read it 
+	using PIL.
+
+	5) Currently, cv2 is only used to read images. To be concise
+	and efficient, change the reading of images to PIL or 
+	matplotlib. Fix any issues regarding image type that arise.
+
+
+
+
+

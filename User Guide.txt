@@ -1,3 +1,196 @@
-Purpose
-Specifications
-How To Use
+Instructions
+
+I)   Outside software requirements
+II)  Starting the program
+III) Using the program
+	A) The image viewer
+	B) The image tracker
+	C) The "next image" and "previous image" buttons
+	D) The gene selector
+IV)  Manual pre-processing
+	A) Storage location
+	B) Formatting
+	C) Step-by-step pre-processing
+----------------------------------------------
+I)   Outside software requirements
+
+Python 3.6.5
+Libraries:
+- numpy 	1.14.2
+- PIL/Pillow 	1.1.7
+- matplotlib 	3.0.0
+- cv2 		3.4.3
+
+II) Starting the program
+
+	1) Download and install the outside software requirements in 
+	section I)
+
+	2) Visit:
+	https://github.com/bdesilets/modeling-expression-OB
+	and click the green "clone or download button", then click
+	"download zip"
+	
+	3) Extract the zip file by right-clicking on the icon and 
+	clicking "unzip" 
+
+	4) Open the unzipped folder and double-click on the MainGUI
+	python file
+
+III) Using the program
+
+	A) The image viewer
+	
+	The image viewer is the portion of the screen that displays
+	the ISH template images. When a gene(s) are selected, it's 
+	expression map(s) will be overlaid on top of the template image.
+	When the program is first opened, the first, lateral sagittal 
+	section ISH template image is displayed. 
+	
+	B) The image tracker
+
+	The image tracker is located just underneath the image viewer.
+	It keeps track of the total number of sagittal section images 
+	that span across the olfactory bulb (OB). The image tracker 
+	also keeps note of the image number that is currently being 
+	displayed.
+
+	C) The "next image" and "previous image" buttons
+
+	The "next image" and "previous image" buttons allow the user to
+	cycle through all of the sagittal section images available. If 
+	the current image is the last image in the set the "next image"
+	button will loop around to the first image in the set.
+	Similarly, if the current image is the first image in the set,
+	the "previous image" button will loop backward to the last
+	image in the set.
+ 
+	D) The gene selector
+	
+	The gene selector is the box at the center-bottom of the window
+	It contains a list of all the processed gene expression data 
+	available. To view any combination of genes on the list, click 
+	on the gene name to select it. When selected, the gene name 
+	will be highlighted in blue. To unselect the gene, click on the
+	gene name again. This will remove the blue highlight from the 
+	gene name. To visualize the selection, click the green "go" 
+	button located next to the gene selector box. Anytime changes 
+	are made to the gene selection, the user must click the "go" 
+	button for these changes to take effect.
+
+IV)  Manual pre-processing
+
+	If a desired gene is not listed in the gene selector box, then
+the user may choose to download the ISH images associated with the gene
+from the Allen Brain Atlas (ABA) and incorporate it into the program.
+
+	A) Storage location
+
+	The ABA images directory holds multiple folders of ISH image 
+	sets from the ABA. Each subfolder is labeled the gene name and
+	contains a set of cropped RGB ISH images.
+	
+	Similarly, the expression maps directory holds multiple folders
+	of expression map sets. Each subfolder is labeled the gene name
+	and contains a set of black and white images that are the result
+	of running the filter_expression module. The images in these 
+	subfolders are the  extracted and filtered expression data 
+	of the corresponding ISH image in the ABA image directory.
+
+	B) Formatting
+	
+	All images in the subfolders of the ABA images directory are
+	RGB ISH images downloaded from the ABA's website. All images
+	are cropped to 369 x 369 pixels manually. The image should be 
+	cropped in such a way that the OB is in the center of the image.
+
+	ISH gene image sets use a naming convention. All cropped images
+	use this format: 
+	"cropped_Genename_##"
+	Replace "Genename" with the shorthand name of the gene,
+	including any numbers that designate different forms of the 
+	gene.
+	Replace "##" with counting numbers starting at "01". Ensure 
+	that the order in which you number the images is the same order
+	as the images appear in the ABA.
+	All of the images for the same gene are placed inside a folder.
+	The folder should be named with the same Genename used for each
+	sagittal section image within the folder.
+
+	This folder should be placed inside the ABA images folder,
+	which is within the main modeling-expression-OB folder.
+
+	C) Step-by-step pre-processing
+
+	1) Go to the Allen Brain Atlas' website for the developing 
+	mouse brain 
+	developingmouse.brain-map.org/
+
+	2) Use the search bar to locate ISH images for your desired 
+	gene. Click on the "gene symbol" of the data set you want. The 
+	expression summary map is a heatmap based on the amount of 
+	expression the gene shows in general anatomic regions throughout
+	the embryo (top) and in each phase of development (side).
+	
+	3) Scroll down to see specific sets of ISH images for the gene 
+	at different ages. Click on a data set, or "experiment" for
+	embryonic age 15.5 (E15.5). We are currently using images from 
+	E15.5 because it corresponds to a period in development 
+	where olfactory sensory neuron (OSN) axons are just beginning 
+	to reach the OB, an optimal time for signal guidance cue 
+	expression to influence OSN axons. Make sure the images are in
+	the sagittal plane.
+
+	4) To view the ISH image set in high resolution, click the
+	window expand icon in the top right corner of the image viewer
+	on the website.
+
+	5) Once in the high-resolution viewer, zoom in using the "+" 
+	symbol and navigate to the OB brain region by clicking and
+	dragging on the image.
+
+	6) Click on thumbnail icons to navigate through the image set.
+	The current image will be highlighted in blue. Scroll through
+	the thumbnails until you see image sections with the OB. Only 
+	images containing the specific brain region (OB) are needed. 
+	Therefore, not all images shoen in the thumbnail are processed.
+	When navigating between thumbnails it is likely that you will
+	have to click and drag on the image to center the brain region
+	on the screen.
+
+	7) Download images with the OB present in the same order they
+	appear in the ABA. To download an image, click the wrench icon
+	in the top right of the high-resolution viewer. Then click 
+	"download image" and select "entire image" for the 
+	"download type".
+	
+	8) The downloaded images must be manually cropped to 
+	369 x 369 pixels (use your favorite image editor, or use a free
+	one online). The image should be cropped in such a way that the
+	OB is in the center of the image.
+
+	ISH gene image sets use a naming convention. All cropped images
+	use this format: "cropped_Genename_##"
+	Replace "Genename" with the shorthand name, or "gene symbol", 
+	of the gene, including any numbers that designate different 
+	forms of the gene. Replace "##" with counting numbers starting 
+	at "01".Ensure that the order in which you number them is the 
+	same order as the images appear in the ABA.
+	All of the images for the same gene are placed inside a folder
+	the folder should be named with the same Genename used for each
+	sagittal section image within the folder.
+	This new folder should be placed inside the ABA images folder,
+	which is within the main modeling-expression-OB folder.
+	
+	9) Now, double click on the MainGUI python file. The program
+	will automatically detect and filter the new gene expression 
+	data. Progress will be shown on the screen. Once finished, the
+	user interface of the program will appear, and the gene 
+	selector box will have the new expression data from the new 
+	gene you have pre-processed.
+
+
+
+
+	
+
