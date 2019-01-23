@@ -85,7 +85,7 @@ class MainGUI:
 		img=Image.open(self.template_filenames[self.pointer])
 		return img
 		
-	def overlay_expression(self): # takes 
+	def overlay_expression(self):
 		# get a list of the currrent gene maps selected
 		current_maps = self.get_current_maps()
 		# if there is one gene map selcted, make that the expression_img

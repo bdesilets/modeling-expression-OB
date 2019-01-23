@@ -1,0 +1,45 @@
+TODO
+
+Urgent
+	- For the GUI, add key to show which colors correlate to which 
+	genes, a scale bar for images, directions for selecting genes 
+	to visualize, and add a way to change the minimum
+	density threshold and window size during the process of 
+	filtering expression.
+	
+	- automatic downloading/cropping
+
+	- Align template images so that the OB is in the same place
+	in each image
+
+	- Align images within a gene set (rotate/translate)
+
+	- Find template images that show no expression so that the
+	colors from the expression map(s) do not become hard to see.
+
+Efficiancy
+	- We can make filter_expression more efficient by using a 
+	“lawn mower” pattern when looping though all the pixels. This 
+	way the window must only be created from scratch for the very 
+	first pixel. When a new row is reached, the window must only be 
+	altered by deleting and adding a row of pixels.
+	
+Better pratices
+	- Currently, we must assume that all ISH images show gene 
+	expression with the same RGB threshold values. Finding a better
+	way to figure out possible RGB ranges would be useful.
+
+	- Ideally, the filtered expression map images should be stored
+	in binary to save on space. The ISH images in the ABA
+	images folder should not be stored in binary. I think it is
+	important that investigators using the program can refer to the
+	original image.
+
+	- Figure out an efficient way to convert a matplotlib 
+	AxesImage (or an matplotlib image with cmap applied) to a PIL
+	Image. Currently, we save it to a temporary file then read it 
+	using PIL.
+
+	- Currently, cv2 is only used to read images. To be concise
+	and efficient, change the reading of images to PIL or 
+	matplotlib. Fix any issues regarding image type that arise.
